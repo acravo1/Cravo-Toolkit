@@ -1,0 +1,20 @@
+{
+  "repositories": [
+    {
+      "name": "CTK",
+      "path": "."
+    },
+    {
+      "name": "AEGIS",
+      "path": "..\\AEGIS-Home-Guardian"
+    },
+    {
+      "name": "HA",
+      "path": "..\\Home-Assistant"
+    },
+    {
+      "name": "HL",
+      "path": "..\\Homelab"
+    }
+  ]
+}

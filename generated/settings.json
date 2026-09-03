@@ -1,0 +1,11 @@
+{
+  "workspaceRoot": "C:\\Users\\silva\\OneDrive\\GitHub",
+  "exportFolder": "exports\\latest",
+  "snapshotFolder": "snapshots",
+  "archiveDays": 30,
+  "autoExportBeforeCommit": true,
+
+  "tools": {
+    "git": "C:\\Program Files\\Git\\bin\\git.exe"
+  }
+}

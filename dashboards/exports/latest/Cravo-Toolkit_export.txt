@@ -3,7 +3,7 @@ Repository Export
 ================================================================================
 
 Repository : Cravo-Toolkit
-Date       : 2026-09-03 20:43:38
+Date       : 2026-09-03 19:43:01
 Root       : C:\Users\silva\OneDrive\GitHub\Cravo-Toolkit
 
 
@@ -196602,232 +196602,23 @@ FILE: config\tasks.json
       "status": "INPROGRESS",
       "priority": "HIGH",
       "title": "Implementar UART RP2040 ↔ ESP32",
-      "owner": "Antonio",
-      "notes": "Canal principal de comunicação entre controlo motor e lógica superior"
+      "owner": "Antonio"
     },
     {
       "id": 2,
       "project": "AEGIS",
-      "status": "READY",
-      "priority": "HIGH",
-      "title": "Validar MPU-6050 no RP2040",
-      "owner": "Antonio",
-      "notes": "Leitura estável de aceleração e giroscópio"
+      "status": "BACKLOG",
+      "priority": "MEDIUM",
+      "title": "Integrar HC-SR04",
+      "owner": "Antonio"
     },
     {
       "id": 3,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "HIGH",
-      "title": "Integrar HC-SR04 frontal",
-      "owner": "Antonio",
-      "notes": "Base para deteção de obstáculos e docking"
-    },
-    {
-      "id": 4,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "MEDIUM",
-      "title": "Definir protocolo UART RP2040 ↔ ESP32",
-      "owner": "Antonio",
-      "notes": "Comandos, telemetria e watchdog"
-    },
-    {
-      "id": 5,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "MEDIUM",
-      "title": "Firmware base da plataforma motora",
-      "owner": "Antonio",
-      "notes": "Movimento, paragem segura e watchdog"
-    },
-    {
-      "id": 6,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "MEDIUM",
-      "title": "Testar TB6612FNG com motores",
-      "owner": "Antonio",
-      "notes": "Validação do Block 01"
-    },
-    {
-      "id": 7,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "LOW",
-      "title": "Planeamento do sistema de docking",
-      "owner": "Antonio",
-      "notes": "IMU, IR, HC-SR04 e visão futura"
-    },
-    {
-      "id": 8,
       "project": "CTK",
-      "status": "READY",
+      "status": "DONE",
       "priority": "MEDIUM",
-      "title": "Integrar tasks.json nos exports",
-      "owner": "Antonio",
-      "notes": "Incluir tarefas do projeto correspondente"
-    },
-    {
-      "id": 9,
-      "project": "CTK",
-      "status": "BACKLOG",
-      "priority": "MEDIUM",
-      "title": "Atualização automática dos README",
-      "owner": "Antonio",
-      "notes": "Gerar secções de estado entre marcadores CTK"
-    },
-    {
-      "id": 10,
-      "project": "CTK",
-      "status": "BACKLOG",
-      "priority": "LOW",
-      "title": "Dashboard HTML do workspace",
-      "owner": "Antonio",
-      "notes": "Vista Kanban e métricas por projeto"
-    }
-  ]
-}
-
-
-================================================================================
-FILE: generated\repositories.json
-================================================================================
-
-{
-  "repositories": [
-    {
-      "name": "CTK",
-      "path": "."
-    },
-    {
-      "name": "AEGIS",
-      "path": "..\\AEGIS-Home-Guardian"
-    },
-    {
-      "name": "HA",
-      "path": "..\\Home-Assistant"
-    },
-    {
-      "name": "HL",
-      "path": "..\\Homelab"
-    }
-  ]
-}
-
-
-================================================================================
-FILE: generated\settings.json
-================================================================================
-
-{
-  "workspaceRoot": "C:\\Users\\silva\\OneDrive\\GitHub",
-  "exportFolder": "exports\\latest",
-  "snapshotFolder": "snapshots",
-  "archiveDays": 30,
-  "autoExportBeforeCommit": true,
-
-  "tools": {
-    "git": "C:\\Program Files\\Git\\bin\\git.exe"
-  }
-}
-
-
-================================================================================
-FILE: generated\tasks.json
-================================================================================
-
-{
-  "tasks": [
-    {
-      "id": 1,
-      "project": "AEGIS",
-      "status": "INPROGRESS",
-      "priority": "HIGH",
-      "title": "Implementar UART RP2040 ↔ ESP32",
-      "owner": "Antonio",
-      "notes": "Canal principal de comunicação entre controlo motor e lógica superior"
-    },
-    {
-      "id": 2,
-      "project": "AEGIS",
-      "status": "READY",
-      "priority": "HIGH",
-      "title": "Validar MPU-6050 no RP2040",
-      "owner": "Antonio",
-      "notes": "Leitura estável de aceleração e giroscópio"
-    },
-    {
-      "id": 3,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "HIGH",
-      "title": "Integrar HC-SR04 frontal",
-      "owner": "Antonio",
-      "notes": "Base para deteção de obstáculos e docking"
-    },
-    {
-      "id": 4,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "MEDIUM",
-      "title": "Definir protocolo UART RP2040 ↔ ESP32",
-      "owner": "Antonio",
-      "notes": "Comandos, telemetria e watchdog"
-    },
-    {
-      "id": 5,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "MEDIUM",
-      "title": "Firmware base da plataforma motora",
-      "owner": "Antonio",
-      "notes": "Movimento, paragem segura e watchdog"
-    },
-    {
-      "id": 6,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "MEDIUM",
-      "title": "Testar TB6612FNG com motores",
-      "owner": "Antonio",
-      "notes": "Validação do Block 01"
-    },
-    {
-      "id": 7,
-      "project": "AEGIS",
-      "status": "BACKLOG",
-      "priority": "LOW",
-      "title": "Planeamento do sistema de docking",
-      "owner": "Antonio",
-      "notes": "IMU, IR, HC-SR04 e visão futura"
-    },
-    {
-      "id": 8,
-      "project": "CTK",
-      "status": "READY",
-      "priority": "MEDIUM",
-      "title": "Integrar tasks.json nos exports",
-      "owner": "Antonio",
-      "notes": "Incluir tarefas do projeto correspondente"
-    },
-    {
-      "id": 9,
-      "project": "CTK",
-      "status": "BACKLOG",
-      "priority": "MEDIUM",
-      "title": "Atualização automática dos README",
-      "owner": "Antonio",
-      "notes": "Gerar secções de estado entre marcadores CTK"
-    },
-    {
-      "id": 10,
-      "project": "CTK",
-      "status": "BACKLOG",
-      "priority": "LOW",
-      "title": "Dashboard HTML do workspace",
-      "owner": "Antonio",
-      "notes": "Vista Kanban e métricas por projeto"
+      "title": "Implementar checkpoint",
+      "owner": "Antonio"
     }
   ]
 }
@@ -197851,12 +197642,6 @@ function Invoke-CtkSummary
     Write-Host $OutputFile
     Write-Host ""
 }
-
-
-================================================================================
-FILE: modules\sync-config.ps1
-================================================================================
-
 
 
 ================================================================================
