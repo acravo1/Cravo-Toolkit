@@ -55,17 +55,11 @@ switch ($Command.ToLower())
 
 	"status"
 	{
+		. "$PSScriptRoot\..\modules\config.ps1"
 		. "$PSScriptRoot\..\modules\repositories.ps1"
 		. "$PSScriptRoot\..\modules\status.ps1"
 
-		if ($Argument -eq "--verbose")
-		{
-			Invoke-CtkStatus -VerboseMode
-		}
-		else
-		{
-			Invoke-CtkStatus
-		}
+		Invoke-CtkStatus
 	}
 
 	"diff"
@@ -78,6 +72,7 @@ switch ($Command.ToLower())
 
 	"end"
 	{
+		. "$PSScriptRoot\..\modules\config.ps1"
 		. "$PSScriptRoot\..\modules\repositories.ps1"
 		. "$PSScriptRoot\..\modules\export.ps1"
 		. "$PSScriptRoot\..\modules\checkpoint.ps1"
@@ -85,6 +80,50 @@ switch ($Command.ToLower())
 		. "$PSScriptRoot\..\modules\end.ps1"
 
 		Invoke-CtkEnd
+	}
+
+	"start"
+	{
+		. "$PSScriptRoot\..\modules\config.ps1"
+		. "$PSScriptRoot\..\modules\repositories.ps1"
+		. "$PSScriptRoot\..\modules\start.ps1"
+
+		Invoke-CtkStart
+	}
+
+	"doctor"
+	{
+		. "$PSScriptRoot\..\modules\config.ps1"
+		. "$PSScriptRoot\..\modules\repositories.ps1"
+		. "$PSScriptRoot\..\modules\doctor.ps1"
+
+		Invoke-CtkDoctor
+	}
+
+	"summary"
+	{
+		. "$PSScriptRoot\..\modules\summary.ps1"
+		Invoke-CtkSummary
+	}
+
+	"report"
+	{
+		. "$PSScriptRoot\..\modules\config.ps1"
+		. "$PSScriptRoot\..\modules\repositories.ps1"
+		. "$PSScriptRoot\..\modules\report.ps1"
+
+		Invoke-CtkReport
+	}
+
+	"test"
+	{
+		. "$PSScriptRoot\..\modules\config.ps1"
+
+		$Git = Get-CtkTool "git"
+
+		Write-Host $Git
+
+		& $Git --version
 	}
 
     default
@@ -99,5 +138,9 @@ switch ($Command.ToLower())
 		Write-Host "ctk status"
 		Write-Host "ctk diff"
 		Write-Host "ctk end"
+		Write-Host "ctk start"
+		Write-Host "ctk doctor"
+		Write-Host "ctk summary"
+		Write-Host "ctk report"
     }
 }

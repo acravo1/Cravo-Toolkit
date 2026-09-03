@@ -1,0 +1,19 @@
+﻿============================================================
+WORKSPACE SUMMARY
+============================================================
+
+Generated:
+2026-09-03 17:37:23
+
+EXPORT FILES
+------------------------------------------------------------
+
+AEGIS-Home-Guardian_export.txt
+Cravo-Toolkit_export.txt
+Home-Assistant_export.txt
+Homelab_export.txt
+
+TOTAL EXPORTS
+------------------------------------------------------------
+
+4

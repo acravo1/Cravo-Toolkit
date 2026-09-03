@@ -1,5 +1,7 @@
 function Invoke-CtkEnd
 {
+    $Git = Get-CtkTool "git"
+
     $Repos = Get-CtkRepositories
 
     Write-Host ""
@@ -17,6 +19,7 @@ function Invoke-CtkEnd
     Invoke-CtkCheckpoint
 
     Write-Host ""
+
     $Confirm = Read-Host "Proceed with commit and push? (Y/N)"
 
     if ($Confirm -ne "Y")
@@ -31,17 +34,17 @@ function Invoke-CtkEnd
     foreach ($Repo in $Repos)
     {
         $RepoPath = Resolve-Path (
-            Join-Path `
-                $PSScriptRoot `
-                "..\$($Repo.Path)"
+            Join-Path $PSScriptRoot "..\$($Repo.Path)"
         )
 
         Push-Location $RepoPath
 
         try
         {
-            $Changes =
-                (git status --porcelain | Measure-Object).Count
+            $Changes = (
+                & $Git status --porcelain |
+                Measure-Object
+            ).Count
 
             if ($Changes -eq 0)
             {
@@ -51,12 +54,14 @@ function Invoke-CtkEnd
             Write-Host ""
             Write-Host ("Processing {0}" -f $Repo.Name)
 
-            git add .
+            & $Git add .
 
-            git commit `
-                -m ("Daily Update {0}" -f (Get-Date -Format "yyyy-MM-dd"))
+            & $Git commit `
+                -m ("Daily Update {0}" -f (
+                    Get-Date -Format "yyyy-MM-dd"
+                ))
 
-            git push
+            & $Git push
         }
         finally
         {

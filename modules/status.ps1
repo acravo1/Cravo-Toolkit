@@ -4,19 +4,21 @@ function Invoke-CtkStatus
         [switch]$VerboseMode
     )
 
+    $Git = Get-CtkTool "git"
+
     $Repos = Get-CtkRepositories
 
     Write-Host ""
 
     Write-Host (
-        "{0,-20} {1,-10} {2}" -f `
+        "{0,-20} {1,-10} {2}" -f
         "REPOSITORY",
         "STATUS",
         "CHANGES"
     )
 
     Write-Host (
-        "{0,-20} {1,-10} {2}" -f `
+        "{0,-20} {1,-10} {2}" -f
         "----------",
         "------",
         "-------"
@@ -25,16 +27,14 @@ function Invoke-CtkStatus
     foreach ($Repo in $Repos)
     {
         $RepoPath = Resolve-Path (
-            Join-Path `
-                $PSScriptRoot `
-                "..\$($Repo.Path)"
+            Join-Path $PSScriptRoot "..\$($Repo.Path)"
         )
 
         Push-Location $RepoPath
 
         try
         {
-            $GitChanges = git status --porcelain
+            $GitChanges = & $Git status --porcelain
 
             $Changes = ($GitChanges | Measure-Object).Count
 
@@ -48,7 +48,7 @@ function Invoke-CtkStatus
             }
 
             Write-Host (
-                "{0,-20} {1,-10} {2}" -f `
+                "{0,-20} {1,-10} {2}" -f
                 $Repo.Name,
                 $Status,
                 $Changes

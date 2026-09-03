@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "project": "AEGIS",
+      "status": "INPROGRESS",
+      "priority": "HIGH",
+      "title": "Implementar UART RP2040 ↔ ESP32",
+      "owner": "Antonio"
+    },
+    {
+      "id": 2,
+      "project": "AEGIS",
+      "status": "BACKLOG",
+      "priority": "MEDIUM",
+      "title": "Integrar HC-SR04",
+      "owner": "Antonio"
+    },
+    {
+      "id": 3,
+      "project": "CTK",
+      "status": "DONE",
+      "priority": "MEDIUM",
+      "title": "Implementar checkpoint",
+      "owner": "Antonio"
+    }
+  ]
+}

@@ -3,5 +3,9 @@
   "exportFolder": "exports\\latest",
   "snapshotFolder": "snapshots",
   "archiveDays": 30,
-  "autoExportBeforeCommit": true
+  "autoExportBeforeCommit": true,
+
+  "tools": {
+    "git": "C:\\Program Files\\Git\\bin\\git.exe"
+  }
 }
