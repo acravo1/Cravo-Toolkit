@@ -1,0 +1,473 @@
+﻿================================================================================
+Repository Export
+================================================================================
+
+Repository : Cravo-Toolkit
+Date       : 2026-09-03 17:02:42
+Root       : C:\Users\silva\OneDrive\GitHub\Cravo-Toolkit
+
+
+================================================================================
+FILE: README.md
+================================================================================
+
+# Cravo-Toolkit
+Shared tooling, automation, templates and workflows for the Cravo ecosystem.
+
+
+================================================================================
+FILE: docs\toolkit-manual.md
+================================================================================
+
+
+
+
+================================================================================
+FILE: templates\adr-template.md
+================================================================================
+
+
+
+
+================================================================================
+FILE: templates\build-guide-template.md
+================================================================================
+
+
+
+
+================================================================================
+FILE: templates\decision-template.md
+================================================================================
+
+
+
+
+================================================================================
+FILE: templates\test-report-template.md
+================================================================================
+
+
+
+
+================================================================================
+FILE: config\repositories.json
+================================================================================
+
+{
+  "repositories": [
+    {
+      "name": "CTK",
+      "path": "."
+    },
+    {
+      "name": "AEGIS",
+      "path": "..\\AEGIS-Home-Guardian"
+    },
+    {
+      "name": "HA",
+      "path": "..\\Home-Assistant"
+    },
+    {
+      "name": "HL",
+      "path": "..\\Homelab"
+    }
+  ]
+}
+
+
+================================================================================
+FILE: config\settings.json
+================================================================================
+
+{
+  "workspaceRoot": "C:\\Users\\silva\\OneDrive\\GitHub",
+  "exportFolder": "exports\\latest",
+  "snapshotFolder": "snapshots",
+  "archiveDays": 30,
+  "autoExportBeforeCommit": true
+}
+
+
+================================================================================
+FILE: bin\ctk.ps1
+================================================================================
+
+param(
+    [string]$Command,
+    [string]$Argument
+)
+
+switch ($Command.ToLower())
+{
+	"list"
+	{
+		. "$PSScriptRoot\..\modules\repositories.ps1"
+
+		$Repos = Get-CtkRepositories
+
+		Write-Host ""
+		Write-Host "Repos encontrados: $($Repos.Count)"
+		Write-Host ""
+
+		Write-Host ("{0,-20} {1,-8} {2}" -f "REPOSITORY","STATUS","PATH")
+		Write-Host ("{0,-20} {1,-8} {2}" -f "----------","------","----")
+
+		foreach ($Repo in $Repos)
+		{
+			Write-Host (
+				"{0,-20} {1,-8} {2}" -f `
+				$Repo.Name, `
+				"OK", `
+				$Repo.Path
+			)
+		}
+	}
+
+	"export"
+	{
+		. "$PSScriptRoot\..\modules\repositories.ps1"
+		. "$PSScriptRoot\..\modules\export.ps1"
+
+		if ($Argument -eq "--all")
+		{
+			Invoke-CtkExportAll
+		}
+		else
+		{
+			Invoke-CtkExport $Argument
+		}
+	}
+
+	"checkpoint"
+	{
+		. "$PSScriptRoot\..\modules\repositories.ps1"
+		. "$PSScriptRoot\..\modules\export.ps1"
+		. "$PSScriptRoot\..\modules\checkpoint.ps1"
+
+		Invoke-CtkCheckpoint
+	}
+
+    default
+    {
+        Write-Host ""
+        Write-Host "CTK Commands"
+        Write-Host ""
+        Write-Host "ctk list"
+        Write-Host "ctk export --all"
+        Write-Host "ctk export AEGIS"
+        Write-Host "ctk checkpoint"
+    }
+}
+
+
+================================================================================
+FILE: exporters\repository-export.ps1
+================================================================================
+
+
+# Repository Export Tool
+# Cravo-Toolkit
+
+$RepoRoot = (Get-Location).Path
+$RepoName = Split-Path $RepoRoot -Leaf
+
+$ExportDir = Join-Path $RepoRoot "exports"
+
+if (!(Test-Path $ExportDir))
+{
+    New-Item -ItemType Directory -Path $ExportDir | Out-Null
+}
+
+$OutputFile = Join-Path $ExportDir "${RepoName}_export.txt"
+
+$Extensions = @(
+    "*.md",
+    "*.txt",
+    "*.yml",
+    "*.yaml",
+    "*.json",
+    "*.ps1"
+)
+
+$Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+
+$Content = @()
+
+$Content += "=" * 80
+$Content += "Repository Export"
+$Content += "=" * 80
+$Content += ""
+$Content += "Repository : $RepoName"
+$Content += "Date       : $Timestamp"
+$Content += "Root       : $RepoRoot"
+$Content += ""
+
+foreach ($Pattern in $Extensions)
+{
+    $Files = Get-ChildItem `
+        -Path $RepoRoot `
+        -Recurse `
+        -File `
+        -Filter $Pattern `
+        -ErrorAction SilentlyContinue
+
+	foreach ($File in $Files)
+	{
+		if ($File.FullName -like "*\exports\*")
+		{
+			continue
+		}
+
+        $RelativePath = $File.FullName.Replace($RepoRoot, "").TrimStart("\")
+
+        $Content += ""
+        $Content += "=" * 80
+        $Content += "FILE: $RelativePath"
+        $Content += "=" * 80
+        $Content += ""
+
+        try
+        {
+            $Content += Get-Content $File.FullName -Encoding UTF8
+        }
+        catch
+        {
+            $Content += "[ERROR READING FILE]"
+        }
+
+        $Content += ""
+    }
+}
+
+$Content | Out-File `
+    -FilePath $OutputFile `
+    -Encoding utf8
+
+Write-Host ""
+Write-Host "Export completed:"
+Write-Host $OutputFile
+Write-Host ""
+
+
+================================================================================
+FILE: modules\checkpoint.ps1
+================================================================================
+
+function Invoke-CtkCheckpoint
+{
+    Invoke-CtkExportAll
+
+    $ToolkitRoot =
+        Resolve-Path (
+            Join-Path $PSScriptRoot ".."
+        )
+
+    $Timestamp =
+        Get-Date -Format "yyyy-MM-dd_HHmm"
+
+    $LatestFolder =
+        Join-Path $ToolkitRoot "exports\latest"
+
+    $SnapshotFolder =
+        Join-Path `
+            $ToolkitRoot `
+            "snapshots\$Timestamp"
+
+    New-Item `
+        -ItemType Directory `
+        -Force `
+        -Path $SnapshotFolder | Out-Null
+
+    Copy-Item `
+        "$LatestFolder\*" `
+        $SnapshotFolder `
+        -Recurse `
+        -Force
+
+    Write-Host ""
+    Write-Host "Checkpoint created:"
+    Write-Host $SnapshotFolder
+    Write-Host ""
+}
+
+
+================================================================================
+FILE: modules\config.ps1
+================================================================================
+
+
+
+================================================================================
+FILE: modules\export.ps1
+================================================================================
+
+function Invoke-CtkExport
+{
+    param(
+        [string]$RepositoryName
+    )
+
+    $Repos = Get-CtkRepositories
+
+    $Repo = $Repos |
+        Where-Object {
+            $_.Name -ieq $RepositoryName
+        }
+
+    if (-not $Repo)
+    {
+        Write-Host ""
+        Write-Host "Repository not found: $RepositoryName"
+        Write-Host ""
+
+        return
+    }
+
+    $RepoPath = Resolve-Path (
+        Join-Path `
+        $PSScriptRoot `
+        "..\$($Repo.Path)"
+    )
+
+    $ExportScript = Join-Path `
+        $RepoPath `
+        "tools\export.ps1"
+
+    if (-not (Test-Path $ExportScript))
+    {
+        Write-Host ""
+        Write-Host "Export script not found."
+        Write-Host ""
+
+        return
+    }
+
+    Write-Host ""
+    Write-Host ("Exporting {0}" -f $Repo.Name)
+    Write-Host ""
+
+    Push-Location $RepoPath
+
+    try
+    {
+        & $ExportScript
+    }
+    finally
+    {
+        Pop-Location
+    }
+}
+
+function Invoke-CtkExportAll
+{
+    $Repos = Get-CtkRepositories
+
+    $ToolkitRoot = Resolve-Path (
+        Join-Path $PSScriptRoot ".."
+    )
+
+    $LatestFolder = Join-Path `
+        $ToolkitRoot `
+        "exports\latest"
+
+    New-Item `
+        -ItemType Directory `
+        -Force `
+        -Path $LatestFolder | Out-Null
+
+    Write-Host ""
+    Write-Host "Running exports..."
+    Write-Host ""
+
+    foreach ($Repo in $Repos)
+    {
+        Invoke-CtkExport $Repo.Name
+    }
+
+    Write-Host ""
+    Write-Host "Consolidating exports..."
+    Write-Host ""
+
+    Get-ChildItem `
+        $LatestFolder `
+        -Filter "*_export.txt" `
+        -ErrorAction SilentlyContinue |
+    Remove-Item -Force
+
+    foreach ($Repo in $Repos)
+    {
+        $RepoPath = Resolve-Path (
+            Join-Path `
+                $ToolkitRoot `
+                $Repo.Path
+        )
+
+        $ExportFolder = Join-Path `
+            $RepoPath `
+            "exports"
+
+        Get-ChildItem `
+            $ExportFolder `
+            -Filter "*_export.txt" `
+            -ErrorAction SilentlyContinue |
+        ForEach-Object {
+
+            Copy-Item `
+                $_.FullName `
+                $LatestFolder `
+                -Force
+
+            Write-Host ("Copied {0}" -f $_.Name)
+        }
+    }
+
+    Write-Host ""
+    Write-Host "Consolidation complete."
+    Write-Host ("Location: {0}" -f $LatestFolder)
+    Write-Host ""
+}
+
+
+================================================================================
+FILE: modules\repositories.ps1
+================================================================================
+
+function Get-CtkRepositories
+{
+    $ConfigPath = Join-Path `
+        $PSScriptRoot `
+        "..\config\repositories.json"
+
+    $ConfigPath = Resolve-Path $ConfigPath
+
+    $Config = Get-Content `
+        $ConfigPath `
+        -Raw |
+        ConvertFrom-Json
+
+    return $Config.repositories
+}
+
+
+================================================================================
+FILE: tools\export.ps1
+================================================================================
+
+$RepositoryRoot = Split-Path $PSScriptRoot -Parent
+
+$ToolkitScript = Join-Path `
+    (Split-Path $RepositoryRoot -Parent) `
+    "Cravo-Toolkit\exporters\repository-export.ps1"
+
+Push-Location $RepositoryRoot
+
+try
+{
+    & $ToolkitScript
+}
+finally
+{
+    Pop-Location
+}
+
