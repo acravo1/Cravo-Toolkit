@@ -115,6 +115,34 @@ switch ($Command.ToLower())
 		Invoke-CtkReport
 	}
 
+	"logbook"
+	{
+		. "$PSScriptRoot\..\modules\logbook.ps1"
+
+		Invoke-CtkLogbook
+	}
+	
+	"bootstrap"
+	{
+		. "$PSScriptRoot\..\modules\bootstrap.ps1"
+
+		Invoke-CtkBootstrap
+	}
+
+	"logbook"
+	{
+		. "$PSScriptRoot\..\modules\logbook.ps1"
+
+		Invoke-CtkLogbook
+	}
+
+	"current-state"
+	{
+		. "$PSScriptRoot\..\modules\current-state.ps1"
+
+		Invoke-CtkCurrentState
+	}
+
 	"test"
 	{
 		. "$PSScriptRoot\..\modules\config.ps1"
@@ -142,5 +170,8 @@ switch ($Command.ToLower())
 		Write-Host "ctk doctor"
 		Write-Host "ctk summary"
 		Write-Host "ctk report"
+		Write-Host "ctk logbook"
+		Write-Host "ctk bootstrap"
+		Write-Host "ctk current-state"
     }
 }

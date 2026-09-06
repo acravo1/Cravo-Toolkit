@@ -1,3 +1,12 @@
+function Write-CtkLog
+{
+    param(
+        [string]$Message
+    )
+
+    Write-Host ("[{0}] {1}" -f (Get-Date -Format "HH:mm:ss"), $Message)
+}
+
 function Invoke-CtkExport
 {
     param(
@@ -22,8 +31,8 @@ function Invoke-CtkExport
 
     $RepoPath = Resolve-Path (
         Join-Path `
-        $PSScriptRoot `
-        "..\$($Repo.Path)"
+            $PSScriptRoot `
+            "..\$($Repo.Path)"
     )
 
     $ExportScript = Join-Path `
@@ -72,24 +81,68 @@ function Invoke-CtkExportAll
         -Force `
         -Path $LatestFolder | Out-Null
 
+    $StartTime = Get-Date
+
     Write-Host ""
-    Write-Host "Running exports..."
+    Write-Host "======================================="
+    Write-Host "CTK EXPORT"
+    Write-Host "======================================="
     Write-Host ""
+
+    Write-CtkLog "Export started"
+    Write-CtkLog ("Repositories found: {0}" -f $Repos.Count)
+
+    Write-Host ""
+
+    $Counter = 0
 
     foreach ($Repo in $Repos)
     {
-        Invoke-CtkExport $Repo.Name
+        $Counter++
+
+        Write-CtkLog (
+            "Repository {0}/{1}: {2}" -f `
+            $Counter, `
+            $Repos.Count, `
+            $Repo.Name
+        )
+
+        $RepoStart = Get-Date
+
+        try
+        {
+            Invoke-CtkExport $Repo.Name
+
+            $RepoElapsed = (Get-Date) - $RepoStart
+
+            Write-CtkLog (
+                "Completed {0} ({1:N1}s)" -f `
+                $Repo.Name, `
+                $RepoElapsed.TotalSeconds
+            )
+        }
+        catch
+        {
+            Write-CtkLog (
+                "FAILED {0}" -f `
+                $Repo.Name
+            )
+
+            Write-CtkLog ($_.Exception.Message)
+        }
+
+        Write-Host ""
     }
 
-    Write-Host ""
-    Write-Host "Consolidating exports..."
-    Write-Host ""
+    Write-CtkLog "Starting consolidation"
 
     Get-ChildItem `
         $LatestFolder `
         -Filter "*_export.txt" `
         -ErrorAction SilentlyContinue |
     Remove-Item -Force
+
+    $FilesCopied = 0
 
     foreach ($Repo in $Repos)
     {
@@ -114,12 +167,23 @@ function Invoke-CtkExportAll
                 $LatestFolder `
                 -Force
 
-            Write-Host ("Copied {0}" -f $_.Name)
+            $FilesCopied++
+
+            Write-CtkLog (
+                "Copied export: {0}" -f `
+                $_.Name
+            )
         }
     }
 
+    $Duration = (Get-Date) - $StartTime
+
     Write-Host ""
-    Write-Host "Consolidation complete."
-    Write-Host ("Location: {0}" -f $LatestFolder)
+
+    Write-CtkLog ("Exports copied: {0}" -f $FilesCopied)
+    Write-CtkLog "Consolidation complete"
+    Write-CtkLog ("Location: {0}" -f $LatestFolder)
+    Write-CtkLog ("Duration: $($Duration.ToString('hh\:mm\:ss'))")
+
     Write-Host ""
 }
