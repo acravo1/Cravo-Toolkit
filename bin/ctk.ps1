@@ -153,7 +153,18 @@ switch ($Command.ToLower())
 
 		& $Git --version
 	}
-
+	"ingest"
+	{
+	    . "$PSScriptRoot\..\modules\ingest.ps1"
+	
+	    Invoke-CtkIngest $Argument
+	}
+	"context"
+	{
+	    . "$PSScriptRoot\..\modules\context.ps1"
+	
+	    Invoke-CtkContext
+	}
     default
     {
         Write-Host ""
@@ -163,15 +174,17 @@ switch ($Command.ToLower())
         Write-Host "ctk export --all"
         Write-Host "ctk export AEGIS"
         Write-Host "ctk checkpoint"
-		Write-Host "ctk status"
-		Write-Host "ctk diff"
-		Write-Host "ctk end"
-		Write-Host "ctk start"
-		Write-Host "ctk doctor"
-		Write-Host "ctk summary"
-		Write-Host "ctk report"
-		Write-Host "ctk logbook"
-		Write-Host "ctk bootstrap"
-		Write-Host "ctk current-state"
+	Write-Host "ctk status"
+	Write-Host "ctk diff"
+	Write-Host "ctk end"
+	Write-Host "ctk start"
+	Write-Host "ctk doctor"
+	Write-Host "ctk summary"
+	Write-Host "ctk report"
+	Write-Host "ctk logbook"
+	Write-Host "ctk bootstrap"
+	Write-Host "ctk current-state"
+	Write-Host "ctk ingest"
+	Write-Host "ctk context"
     }
 }
