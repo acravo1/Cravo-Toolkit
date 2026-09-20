@@ -1,283 +1,178 @@
 # CURRENT CONTEXT
 
-Generated:
-2026-09-16
+Generated: 2026-09-19 18:33:02
 
 ---
 
-# PURPOSE
+# PROJECTS
 
-Este ficheiro representa o estado contextual necessário para retomar trabalho numa nova sessão.
+## AEGIS-Home-Guardian
 
-O objetivo não é documentar projetos.
 
-O objetivo é reconstruir rapidamente o estado mental necessário para continuar trabalho complexo sem perda significativa de contexto.
+AEGIS é uma plataforma robótica autónoma integrada com Home Assistant.
 
----
+Arquitetura RP2040 + ESP32-S3 validada.
 
-# COPILOT CONTRACT
+Focos atuais:
 
-Source:
-00-WIP/INTERFACE-CONTRACT.md
+- All Terrain
+- MAVLink
+- Telemetria
+- Home Assistant
 
-Quando o utilizador escrever:
+Bloqueios atuais:
 
-- Gerar SESSION-OUTPUT
-- Resumo para CTK
+- Estratégia MAVLink
+- Navegação autónoma
 
-deve ser produzido exclusivamente um ficheiro:
 
-00-WIP/SESSION-OUTPUT.md
+## Home-Assistant
 
-seguindo o formato SESSION OUTPUT V1.
 
----
+Home Assistant é a camada principal de integração da propriedade.
 
-# WHY WE ARE HERE
+Responsável por:
 
-O CTK nasceu porque a resolução de problemas complexos normalmente exige várias sessões.
-
-A IA consegue ajudar na resolução dos problemas mas perde continuidade entre sessões.
-
-O objetivo do CTK é reduzir essa perda através de:
-
-CURRENT-CONTEXT.md
-↓
-Copilot
-↓
-SESSION-OUTPUT.md
-↓
-Parser
-↓
-CKS
-↓
-CURRENT-CONTEXT.md
-
----
-
-# ACTIVE PROJECTS
-
-## AEGIS
-
-Estado:
-Desenvolvimento ativo.
-
-Focos recentes:
-
-- Arquitetura modular.
-- AEGIS All Terrain.
-- AEGIS Drone.
-- Integração Home Assistant.
-- MAVLink.
-- Operação exterior.
-
----
-
-## MORADIA
-
-Estado:
-Planeamento e conceção.
-
-Focos recentes:
-
-- Lote A28.
-- Água.
-- Paisagismo.
-- Lago.
-- Regato.
-- Aquaponia.
-
----
-
-## HOMELAB
-
-Estado:
-Infraestrutura central.
-
-Funções:
-
-- Home Assistant.
-- MQTT.
-- Automação.
-- Observabilidade.
-
----
-
-## CTK
-
-Estado:
-Em evolução ativa.
+- automações
+- observabilidade
+- sensores
+- MQTT
+- integração AEGIS
 
 Foco atual:
 
-- Preservação de contexto.
-- Interface Homem ↔ IA.
-- CURRENT-CONTEXT.md.
-- SESSION-OUTPUT.md.
-- Context Builder.
+- integração com AEGIS
+- ESPHome
+- observabilidade
+
+Princípio importante:
+
+Home Assistant integra.
+Não navega.
+Não substitui o Homelab.
+
+
+## Homelab
+
+
+Homelab é a infraestrutura central do ecossistema.
+
+Responsável por:
+
+- serviços
+- computação
+- observabilidade
+- MQTT
+- suporte ao AEGIS
+
+Foco atual:
+
+- observabilidade
+- integração de serviços
+- suporte ao ecossistema AEGIS
+
+Princípio importante:
+
+O processamento pesado deve residir aqui sempre que possível.
+
+
+## MORADIA
+
+
+Projeto de planeamento da futura propriedade.
+
+Foco atual:
+
+- lote A28
+- paisagismo
+- água
+- lago
+- regato
+- aquaponia
+
+Decisões consolidadas:
+
+- lago mantido
+- regato mantido
+- ponte mantida
+- poço como elemento central
+
+Objetivo:
+
+Evoluir para o conceito AEGIS Smart Property.
+
 
 ---
 
-# RECENT DECISIONS
+# CORE
 
-## 2026-09-16
 
-### CTK
+O CTK utiliza quatro áreas principais:
 
-- O objetivo principal do sistema é preservar contexto.
-- O parser deixa temporariamente de ser prioridade.
-- A atualização automática da documentação fica adiada.
-- O foco passa para a continuidade entre sessões.
+- 01-PROJECTS
+- 02-CORE
+- 03-SESSIONS
+- 04-LOGBOOK
 
-### Interface CTK
+As Single Sources Of Truth são:
 
-Foram definidos apenas dois ficheiros de interface:
+- 01-PROJECTS
+- 02-CORE
+- 03-SESSIONS
 
-INPUT:
-00-WIP/SESSION-OUTPUT.md
+Princípios principais:
 
-OUTPUT:
-00-WIP/CURRENT-CONTEXT.md
+- Context Preservation Is The Primary Purpose
+- Workspace Is A View
+- Structure Over Configuration
+- README Is The Fundamental Context Unit
 
-Todos os restantes artefactos passam a ser considerados implementação interna.
+Fluxo principal:
 
-### Moradia - Lote A28
-
-- Lago mantido.
-- Regato mantido.
-- Ponte mantida.
-- As árvores atualmente existentes deixam de ser consideradas no desenho futuro.
-- As quatro oliveiras jovens poderão ser transplantadas.
-- O poço passa a ser considerado o elemento central da composição paisagística.
-
----
-
-# OPEN QUESTIONS
-
-## CTK
-
-- Qual deve ser o conteúdo mínimo do SESSION-OUTPUT?
-- Como validar a qualidade do CURRENT-CONTEXT?
-- Como medir perda de contexto entre sessões?
-
-## CKS
-
-- Auditoria da estrutura de pastas.
-- Auditoria do conteúdo dos ficheiros.
-- Validação de ADRs.
-- Validação de Current State.
-- Validação de Knowledge.
-- Validação de Logbooks.
-
-## Moradia
-
-- Dimensão final do lago.
-- Geometria final do regato.
-- Seleção do arquiteto paisagista.
-- Organização definitiva do lote A28.
-
----
-
-# LONG TERM VISION
-
-## AEGIS Smart Property
-
-A visão evoluiu de:
-
-Smart Home
-
-para:
-
-AEGIS Smart Property.
-
-Subsistemas previstos:
-
-- AEGIS Home
-- AEGIS Water
-- AEGIS Garden
-- AEGIS Rover
-- AEGIS All Terrain
-- AEGIS Drone
-- Homelab Core
-
----
-
-## AEGIS Water
-
-Conceito atual:
-
-Poço
+ctk start
 ↓
-Tanque
+CURRENT-CONTEXT.md
 ↓
-Regato
+Sessão
 ↓
-Lago Koi
+SESSION-OUTPUT.md
 ↓
-Aquaponia
+ctk ingest
 ↓
-Tanque
+03-SESSIONS
 
-Complementado por:
+00-WIP é uma área temporária e descartável.
 
-- Pomar
-- Horta
-- Jardim aromático
-- Área de lazer junto ao poço
+
 
 ---
 
-# SESSION HISTORY
+# RECENT SESSIONS
 
-## 2026-09-16
+## 2026-09-19-183246
 
-Tema:
-Preservação de contexto no CTK
 
-Principais conclusões:
+- Nova arquitetura CTK V2 consolidada
+- Bootstrap Context implementado para Projects, Core e Sessions
+- Context Builder V2 validado
+- ctk start validado
+- Recuperação automática das sessões recentes funcional
+- Próximo passo: validar ingest V2
 
-- O objetivo do CTK é preservar contexto.
-- Foram definidos os dois ficheiros de interface.
-- Foi iniciado o desenho do Context Builder.
 
----
+## 2026-09-18-221150
 
-## 2026-09-15
 
-Tema:
-AEGIS Smart Property
+- Context Builder V2 validado
+- Recuperação de contexto funcional
+- Próximo passo: validar ingest
 
-Principais conclusões:
 
-- Consolidação do lote A28.
-- Introdução do lago.
-- Introdução do regato.
-- Introdução da ponte.
-- Introdução da aquaponia.
-- O poço passa a elemento central da composição.
+## 2026-09-18-220540
 
----
 
-# NEXT SESSION
+- teste ingest
+- sessão arquivada automaticamente
+- validar recuperação de contexto
 
-Prioridade máxima:
 
-Congelar definitivamente o formato do SESSION-OUTPUT.md.
-
-Depois:
-
-1. Validar a reconstrução de contexto.
-2. Refinar o Context Builder.
-3. Auditar a estrutura do CKS.
-4. Revisitar ingest.
-5. Revisitar parser.
-
----
-
-# SUCCESS CRITERION
-
-Uma sessão futura será considerada bem sucedida se:
-
-- CURRENT-CONTEXT.md for suficiente para reconstruir o contexto de trabalho;
-- não for necessário reexplicar decisões anteriores;
-- a continuidade cognitiva entre sessões for mantida.
