@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+SEARCH="${1:-}"
+REPLACE="${2:-}"
+ROOT="${3:-.}"
+
+if [[ -z "$SEARCH" ]]; then
+    cat <<EOF
+Uso:
+
+  Pesquisa:
+    $(basename "$0") <texto>
+
+  Pesquisa e substituição:
+    $(basename "$0") <texto_antigo> <texto_novo>
+
+  Pesquisa e substituição numa pasta:
+    $(basename "$0") <texto_antigo> <texto_novo> /caminho
+
+Exemplos:
+
+  $(basename "$0") "192.168.168."
+
+  $(basename "$0") "192.168.168.10" "192.168.0.10"
+
+  $(basename "$0") "192.168.168." "192.168.0." /srv/data
+
+EOF
+    exit 1
+fi
+
+echo
+echo "Root......: $ROOT"
+echo "Search....: $SEARCH"
+
+if [[ -n "$REPLACE" ]]; then
+    echo "Replace...: $REPLACE"
+fi
+
+echo
+
+find "$ROOT" -type f \
+    \( \
+        -name "*.yml" \
+        -o -name "*.yaml" \
+        -o -name "*.conf" \
+        -o -name "*.json" \
+        -o -name "*.env" \
+        -o -name "*.cfg" \
+        -o -name "*.ini" \
+        -o -name "*.xml" \
+        -o -name "*.txt" \
+    \) \
+    -print0 |
+while IFS= read -r -d '' file
+do
+    count=$(grep -cF "$SEARCH" "$file" 2>/dev/null || true)
+
+    if [[ "$count" -gt 0 ]]; then
+
+        printf "[%3d] %s\n" "$count" "$file"
+
+        if [[ -n "$REPLACE" ]]; then
+
+            cp -p "$file" "${file}.bak"
+
+            sed -i "s|$SEARCH|$REPLACE|g" "$file"
+
+            echo "      backup : ${file}.bak"
+            echo "      updated"
+
+        fi
+    fi
+done
