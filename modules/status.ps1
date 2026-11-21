@@ -1,76 +1,54 @@
 function Invoke-CtkStatus
 {
-    param(
-        [switch]$VerboseMode
-    )
+    $State = Get-CtkMachineState
 
-    $Git = Get-CtkTool "git"
+    Write-Host ""
+    Write-Host "CTK STATUS"
+    Write-Host "=========="
+    Write-Host ""
 
-    $Repos = Get-CtkRepositories
+    Write-Host ("Machine State : {0}" -f $State.MachineState)
 
     Write-Host ""
 
+    Write-Host "Context"
+    Write-Host "-------"
+
     Write-Host (
-        "{0,-20} {1,-10} {2}" -f
-        "REPOSITORY",
-        "STATUS",
-        "CHANGES"
+        "CURRENT-CONTEXT : " +
+        $(if ($State.HasContext) { "OK" } else { "MISSING" })
     )
 
     Write-Host (
-        "{0,-20} {1,-10} {2}" -f
-        "----------",
-        "------",
-        "-------"
+        "SESSION-OUTPUT  : " +
+        $(if ($State.HasSession) { "PRESENT" } else { "NOT FOUND" })
     )
 
-    foreach ($Repo in $Repos)
-    {
-        $RepoPath = Resolve-Path (
-            Join-Path $PSScriptRoot "..\$($Repo.Path)"
-        )
+    Write-Host (
+        "03-SESSIONS     : " +
+        $(if ($State.HasArchive) { "OK" } else { "MISSING" })
+    )
 
-        Push-Location $RepoPath
+    Write-Host ""
 
-        try
-        {
-            $GitChanges = & $Git status --porcelain
+    Write-Host "Git"
+    Write-Host "---"
 
-            $Changes = ($GitChanges | Measure-Object).Count
+    Write-Host (
+        "Dirty Changes   : " +
+        $(if ($State.GitDirty) { "YES" } else { "NO" })
+    )
 
-            if ($Changes -eq 0)
-            {
-                $Status = "CLEAN"
-            }
-            else
-            {
-                $Status = "MODIFIED"
-            }
+    Write-Host (
+        "Push Required   : " +
+        $(if ($State.PushRequired) { "YES" } else { "NO" })
+    )
 
-            Write-Host (
-                "{0,-20} {1,-10} {2}" -f
-                $Repo.Name,
-                $Status,
-                $Changes
-            )
+    Write-Host ""
 
-            if ($VerboseMode -and $Changes -gt 0)
-            {
-                Write-Host ""
-
-                foreach ($Line in $GitChanges)
-                {
-                    Write-Host ("    $Line")
-                }
-
-                Write-Host ""
-            }
-        }
-        finally
-        {
-            Pop-Location
-        }
-    }
-
+    Write-Host "Next Commands"
+    Write-Host "-------------"
+    Write-Host ""
+    Write-Host ("  " + $State.NextCommand)
     Write-Host ""
 }

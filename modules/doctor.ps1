@@ -68,13 +68,11 @@ function Invoke-CtkDoctor
 
     foreach ($Repo in $Repos)
     {
-        $RepoPath = Resolve-Path (
-            Join-Path `
-                $PSScriptRoot `
-                "..\$($Repo.Path)"
-        )
+        $RepoPath = Resolve-Path $Repo.Path
 
-        $GitFolder = Join-Path $RepoPath ".git"
+        $GitFolder = Join-Path `
+            $RepoPath `
+            ".git"
 
         $ExportScript = Join-Path `
             $RepoPath `

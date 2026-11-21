@@ -1,15 +1,44 @@
 function Get-CtkRepositories
 {
-    $ConfigPath = Join-Path `
-        $PSScriptRoot `
-        "..\config\repositories.json"
+    $Root = Split-Path $PSScriptRoot -Parent
 
-    $ConfigPath = Resolve-Path $ConfigPath
+    $ProjectsPath = Join-Path $Root "01-PROJECTS"
 
-    $Config = Get-Content `
-        $ConfigPath `
-        -Raw |
-        ConvertFrom-Json
+    if (-not (Test-Path $ProjectsPath))
+    {
+        throw "Projects folder not found: $ProjectsPath"
+    }
 
-    return $Config.repositories
+    Get-ChildItem `
+        -Path $ProjectsPath `
+        -Directory |
+    Where-Object {
+        Test-Path (
+            Join-Path $_.FullName "README.md"
+        )
+    } |
+    ForEach-Object {
+
+        [PSCustomObject]@{
+            Name = $_.Name
+            Path = $_.FullName
+        }
+    }
+}
+
+function Show-CtkRepositories
+{
+    $Repositories = Get-CtkRepositories
+
+    Write-Host ""
+    Write-Host "Discovered Projects"
+    Write-Host "-------------------"
+
+    foreach ($Repository in $Repositories)
+    {
+        Write-Host $Repository.Name
+    }
+
+    Write-Host ""
+    Write-Host ("Total: " + $Repositories.Count)
 }

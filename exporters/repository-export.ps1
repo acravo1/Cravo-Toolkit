@@ -1,165 +1,515 @@
-# Repository Export Tool
-# Cravo-Toolkit
+param(
+    [int]$MaxFileSizeKB = 512,
+    [int]$MaxContentFileMB = 4
+)
 
-function Write-ExportLog
+$ErrorActionPreference = "Stop"
+
+$RepositoryRoot = (Get-Location).ProviderPath
+$RepositoryName = Split-Path $RepositoryRoot -Leaf
+
+$OutputFolder = Join-Path $RepositoryRoot "exports"
+
+New-Item `
+    -ItemType Directory `
+    -Force `
+    -Path $OutputFolder | Out-Null
+
+Get-ChildItem `
+    -Path $OutputFolder `
+    -Force `
+    -ErrorAction SilentlyContinue |
+Remove-Item `
+    -Force `
+    -Recurse `
+    -ErrorAction SilentlyContinue
+
+$ContextFile = Join-Path $OutputFolder "${RepositoryName}-context.txt"
+$TreeFile    = Join-Path $OutputFolder "${RepositoryName}-tree.txt"
+$GitFile     = Join-Path $OutputFolder "${RepositoryName}-git.txt"
+$ManifestFile = Join-Path $OutputFolder "${RepositoryName}-manifest.txt"
+$SnapshotFile = Join-Path $OutputFolder "${RepositoryName}-snapshot.txt"
+
+$IgnoredFolders = @(
+    ".git",
+    ".github",
+    ".vs",
+    "bin",
+    "obj",
+    "node_modules",
+    ".venv",
+    "venv",
+    "__pycache__",
+    ".idea",
+    "dist",
+    "build",
+    "exports"
+)
+
+$TextExtensions = @(
+    ".md",
+    ".txt",
+    ".yaml",
+    ".yml",
+    ".json",
+    ".ps1",
+    ".psm1",
+    ".sh",
+    ".py",
+    ".js",
+    ".ts",
+    ".html",
+    ".css",
+    ".sql",
+    ".cfg",
+    ".ini",
+    ".conf",
+    ".xml",
+    ".csv"
+)
+
+$FilesExported = 0
+$FilesSkipped  = 0
+
+$Utf8Bom = New-Object System.Text.UTF8Encoding($true)
+
+$MaxContentFileBytes =
+    $MaxContentFileMB * 1MB
+
+function New-ContentFile
 {
     param(
-        [string]$Message
+        [int]$Index
     )
 
-    Write-Host (
-        "[{0}] {1}" -f `
-        (Get-Date -Format "HH:mm:ss"), `
-        $Message
+    return (
+        Join-Path `
+            $OutputFolder `
+            ("{0}-content-{1:d2}.txt" -f `
+                $RepositoryName,
+                $Index)
     )
 }
 
-$ExportStart = Get-Date
+$ContentHeader = @"
+REPOSITORY CONTENT
 
-$RepoRoot = (Get-Location).Path
-$RepoName = Split-Path $RepoRoot -Leaf
+Repository : $RepositoryName
+Date       : $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+Root       : $RepositoryRoot
 
-Write-ExportLog ("Repository: {0}" -f $RepoName)
-Write-ExportLog ("Root: {0}" -f $RepoRoot)
+"@
 
-$ExportDir = Join-Path $RepoRoot "exports"
+$script:ContentHeader = $ContentHeader
 
-if (!(Test-Path $ExportDir))
+function Switch-ContentFile
 {
-    Write-ExportLog "Creating exports directory"
+    $script:ContentWriter.Flush()
+    $script:ContentWriter.Dispose()
 
-    New-Item `
-        -ItemType Directory `
-        -Path $ExportDir | Out-Null
-}
+    $script:ContentIndex++
 
-$OutputFile = Join-Path `
-    $ExportDir `
-    "${RepoName}_export.txt"
+    $script:ContentFile =
+        New-ContentFile `
+            -Index $script:ContentIndex
 
-$Extensions = @(
-    "*.md",
-    "*.txt",
-    "*.yml",
-    "*.yaml",
-    "*.json",
-    "*.ps1"
-)
-
-$Timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-
-$Content = @()
-
-$Content += "=" * 80
-$Content += "Repository Export"
-$Content += "=" * 80
-$Content += ""
-$Content += "Repository : $RepoName"
-$Content += "Date       : $Timestamp"
-$Content += "Root       : $RepoRoot"
-$Content += ""
-
-$TotalFiles = 0
-$FilesExported = 0
-
-Write-ExportLog "Scanning repository"
-
-foreach ($Pattern in $Extensions)
-{
-    Write-ExportLog ("Searching pattern: {0}" -f $Pattern)
-
-    $Files = Get-ChildItem `
-        -Path $RepoRoot `
-        -Recurse `
-        -File `
-        -Filter $Pattern `
-        -ErrorAction SilentlyContinue
-
-    Write-ExportLog (
-        "Found {0} files for {1}" -f `
-        $Files.Count, `
-        $Pattern
+    [System.IO.File]::WriteAllText(
+        $script:ContentFile,
+        $script:ContentHeader,
+        $Utf8Bom
     )
 
-    $TotalFiles += $Files.Count
+    $script:ContentWriter =
+        [System.IO.StreamWriter]::new(
+            $script:ContentFile,
+            $true,
+            $Utf8Bom
+        )
 }
 
-Write-ExportLog (
-    "Total candidate files: {0}" -f `
-    $TotalFiles
-)
+$ContentIndex = 1
 
-foreach ($Pattern in $Extensions)
+$ContentFile =
+    New-ContentFile `
+        -Index $ContentIndex
+
+# -------------------------------------------------------------------
+# GIT
+# -------------------------------------------------------------------
+
+try
 {
-    Write-ExportLog (
-        "Processing pattern: {0}" -f `
-        $Pattern
-    )
+    $GitBranch = (
+        git branch --show-current 2>$null
+    ).Trim()
 
-    $Files = Get-ChildItem `
-        -Path $RepoRoot `
-        -Recurse `
-        -File `
-        -Filter $Pattern `
-        -ErrorAction SilentlyContinue
+    $GitStatus =
+        git status 2>$null |
+        Out-String
 
-    foreach ($File in $Files)
+    $GitLog =
+        git log --oneline -20 2>$null |
+        Out-String
+
+    if([string]::IsNullOrWhiteSpace($GitBranch))
     {
-        if ($File.FullName -like "*\exports\*")
+        $GitBranch = "Unknown"
+    }
+}
+catch
+{
+    $GitBranch = "N/A"
+    $GitStatus = "Git repository not detected."
+    $GitLog    = ""
+}
+
+$GitContent = @"
+REPOSITORY GIT INFORMATION
+
+Repository : $RepositoryName
+Date       : $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+Branch     : $GitBranch
+
+GIT STATUS
+
+$GitStatus
+
+LAST 20 COMMITS
+
+$GitLog
+"@
+
+[System.IO.File]::WriteAllText(
+    $GitFile,
+    $GitContent,
+    $Utf8Bom
+)
+
+# -------------------------------------------------------------------
+# MANIFEST
+# -------------------------------------------------------------------
+
+$ManifestContent = @()
+
+Get-ChildItem `
+    -Path $RepositoryRoot `
+    -Recurse `
+    -File |
+Where-Object {
+
+    $_.FullName -notlike "*\exports\*"
+
+} |
+Sort-Object FullName |
+ForEach-Object {
+
+    $RelativePath =
+        $_.FullName.Substring(
+            $RepositoryRoot.Length
+        ).TrimStart("\")
+
+    $ManifestContent += (
+        "{0,-80} {1,10:N0} bytes" -f
+        $RelativePath,
+        $_.Length
+    )
+}
+
+[System.IO.File]::WriteAllText(
+    $ManifestFile,
+    (
+        $ManifestContent -join
+        [Environment]::NewLine
+    ),
+    $Utf8Bom
+)
+
+# -------------------------------------------------------------------
+# CONTEXT
+# -------------------------------------------------------------------
+
+$ContextContent = @"
+REPOSITORY CONTEXT
+
+Repository : $RepositoryName
+Date       : $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+Root       : $RepositoryRoot
+
+FILES
+
+Git      : $(Split-Path $GitFile -Leaf)
+Tree     : $(Split-Path $TreeFile -Leaf)
+Manifest : $(Split-Path $ManifestFile -Leaf)
+Snapshot : $(Split-Path $SnapshotFile -Leaf)
+Content  : ${RepositoryName}-content-*.txt
+
+PURPOSE
+
+context.txt :
+Project summary and metadata.
+
+git.txt :
+Branch, status and recent commits.
+
+tree.txt :
+Repository structure.
+
+manifest.txt :
+Inventory of all repository files.
+
+snapshot.txt :
+High-level repository summary.
+
+content.txt :
+Text content of exported files.
+
+"@
+
+[System.IO.File]::WriteAllText(
+    $ContextFile,
+    $ContextContent,
+    $Utf8Bom
+)
+
+# -------------------------------------------------------------------
+# CONTENT HEADER
+# -------------------------------------------------------------------
+
+[System.IO.File]::WriteAllText(
+    $ContentFile,
+    $ContentHeader,
+    $Utf8Bom
+)
+
+$ContentWriter =
+    [System.IO.StreamWriter]::new(
+        $ContentFile,
+        $true,
+        $Utf8Bom
+    )
+	
+# -------------------------------------------------------------------
+# CONTENT EXPORT
+# -------------------------------------------------------------------
+
+Get-ChildItem `
+    -Path $RepositoryRoot `
+    -Recurse `
+    -File |
+ForEach-Object {
+
+    $CurrentFile = $_
+    $Skip = $false
+
+    foreach($Folder in $IgnoredFolders)
+    {
+        if($CurrentFile.FullName -like "*\$Folder\*")
         {
-            continue
+            $Skip = $true
+            break
         }
+    }
+
+    if($Skip)
+    {
+        $FilesSkipped++
+        return
+    }
+
+    if($CurrentFile.Length -gt ($MaxFileSizeKB * 1KB))
+    {
+        $FilesSkipped++
+        return
+    }
+
+    $Include = $false
+
+    if(
+        $TextExtensions -contains
+        $CurrentFile.Extension.ToLower()
+    )
+    {
+        $Include = $true
+    }
+
+    if(
+        $CurrentFile.Name -in @(
+            "Dockerfile",
+            "README",
+            "README.md",
+            "LICENSE",
+            ".gitignore",
+            ".gitattributes"
+        )
+    )
+    {
+        $Include = $true
+    }
+
+    if(-not $Include)
+    {
+        $FilesSkipped++
+        return
+    }
+
+    try
+    {
+        $Content =
+            Get-Content `
+                -Path $CurrentFile.FullName `
+                -Raw
+
+		if([string]::IsNullOrWhiteSpace($Content))
+		{
+			$FilesSkipped++
+			return
+		}
+
+        $RelativePath =
+            $CurrentFile.FullName.Substring(
+                $RepositoryRoot.Length
+            ).TrimStart("\")
+
+		if(
+			(Get-Item $script:ContentFile).Length -ge
+			$MaxContentFileBytes
+		)
+		{
+			Switch-ContentFile
+		}
+
+		$ContentWriter.WriteLine("")
+		$ContentWriter.WriteLine("----------------------------------------------------------------")
+		$ContentWriter.WriteLine("FILE: $RelativePath")
+		$ContentWriter.WriteLine("----------------------------------------------------------------")
+		$ContentWriter.WriteLine("")
+		$ContentWriter.WriteLine($Content)
+		$ContentWriter.WriteLine("")
 
         $FilesExported++
-
-        Write-ExportLog (
-            "File {0}/{1}: {2}" -f `
-            $FilesExported, `
-            $TotalFiles, `
-            $File.Name
-        )
-
-        $RelativePath = $File.FullName.
-            Replace($RepoRoot, "").
-            TrimStart("\")
-
-        $Content += ""
-        $Content += "=" * 80
-        $Content += "FILE: $RelativePath"
-        $Content += "=" * 80
-        $Content += ""
-
-        try
-        {
-            $Content += Get-Content `
-                $File.FullName `
-                -Encoding UTF8
-        }
-        catch
-        {
-            $Content += "[ERROR READING FILE]"
-        }
-
-        $Content += ""
+    }
+    catch
+    {
+        $FilesSkipped++
     }
 }
 
-Write-ExportLog "Writing export file"
+# -------------------------------------------------------------------
+# FOOTER
+# -------------------------------------------------------------------
 
-$Content | Out-File `
-    -FilePath $OutputFile `
-    -Encoding utf8
+$ContentWriter.WriteLine("")
+$ContentWriter.WriteLine("EXPORT SUMMARY")
+$ContentWriter.WriteLine("")
+$ContentWriter.WriteLine("Files Exported : $FilesExported")
+$ContentWriter.WriteLine("Files Skipped  : $FilesSkipped")
+$ContentWriter.WriteLine("")
 
-$Duration = (Get-Date) - $ExportStart
+$ContentWriter.Flush()
+$ContentWriter.Dispose()
+
+# -------------------------------------------------------------------
+# SNAPSHOT
+# -------------------------------------------------------------------
+
+$GeneratedFiles = Get-ChildItem `
+    -Path $OutputFolder `
+    -File |
+Sort-Object Name |
+Select-Object -ExpandProperty Name
+
+$GeneratedFilesText = $GeneratedFiles -join [Environment]::NewLine
+
+$SnapshotContent = @"
+PROJECT SNAPSHOT
+
+Repository : $RepositoryName
+Date       : $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+Branch     : $GitBranch
+
+Files Exported : $FilesExported
+Files Skipped  : $FilesSkipped
+
+Generated Files
+
+$GeneratedFilesText
+
+"@
+
+[System.IO.File]::WriteAllText(
+    $SnapshotFile,
+    $SnapshotContent,
+    $Utf8Bom
+)
+
+# -------------------------------------------------------------------
+# TREE
+# -------------------------------------------------------------------
+
+$TreeOutput = cmd /c tree /F /A
+
+[System.IO.File]::WriteAllText(
+    $TreeFile,
+    ($TreeOutput | Out-String),
+    $Utf8Bom
+)
+
+# -------------------------------------------------------------------
+# OUTPUT
+# -------------------------------------------------------------------
 
 Write-Host ""
+Write-Host "Repository exported successfully"
+Write-Host ""
 
-Write-ExportLog "Export completed"
-Write-ExportLog ("Output: {0}" -f $OutputFile)
-Write-ExportLog ("Files exported: {0}" -f $FilesExported)
-Write-ExportLog (
-    "Duration: {0}" -f `
-    $Duration.ToString("hh\:mm\:ss")
+Write-Host "Files exported : $FilesExported"
+Write-Host "Files skipped  : $FilesSkipped"
+
+Write-Host ""
+Write-Host "Generated:"
+
+Write-Host "  $ContextFile"
+Write-Host "  $GitFile"
+Write-Host "  $TreeFile"
+Write-Host "  $ManifestFile"
+Write-Host "  $SnapshotFile"
+Write-Host "  $ContentFile"
+Write-Host ""
+
+Write-Host (
+    "Context : {0:N2} KB" -f (
+        (Get-Item $ContextFile).Length / 1KB
+    )
+)
+
+Write-Host (
+    "Git     : {0:N2} KB" -f (
+        (Get-Item $GitFile).Length / 1KB
+    )
+)
+
+Write-Host (
+    "Tree    : {0:N2} KB" -f (
+        (Get-Item $TreeFile).Length / 1KB
+    )
+)
+
+Write-Host (
+    "Manifest: {0:N2} KB" -f (
+        (Get-Item $ManifestFile).Length / 1KB
+    )
+)
+
+Write-Host (
+    "Snapshot: {0:N2} KB" -f (
+        (Get-Item $SnapshotFile).Length / 1KB
+    )
+)
+
+Write-Host (
+    "Content : {0:N2} KB" -f (
+        (Get-Item $ContentFile).Length / 1KB
+    )
 )
 
 Write-Host ""

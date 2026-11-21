@@ -1,75 +1,27 @@
 function Invoke-CtkEnd
 {
-    $Git = Get-CtkTool "git"
+    $State = Get-CtkMachineState
 
-    $Repos = Get-CtkRepositories
-
-    Write-Host ""
-    Write-Host "====================================="
-    Write-Host "CTK END OF DAY"
-    Write-Host "====================================="
-    Write-Host ""
-
-    Invoke-CtkStatus
-
-    Write-Host ""
-    Write-Host "Creating checkpoint..."
-    Write-Host ""
-
-    Invoke-CtkCheckpoint
-
-    Write-Host ""
-
-    $Confirm = Read-Host "Proceed with commit and push? (Y/N)"
-
-    if ($Confirm -ne "Y")
+    if (-not $State.HasSession)
     {
         Write-Host ""
-        Write-Host "Operation cancelled."
-        Write-Host ""
-
+        Write-Host "[ERROR] No active session found"
         return
     }
 
-    foreach ($Repo in $Repos)
-    {
-        $RepoPath = Resolve-Path (
-            Join-Path $PSScriptRoot "..\$($Repo.Path)"
-        )
+    Write-Host ""
+    Write-Host "Closing session..."
+    Write-Host ""
 
-        Push-Location $RepoPath
+    Invoke-CtkIngest
 
-        try
-        {
-            $Changes = (
-                & $Git status --porcelain |
-                Measure-Object
-            ).Count
+    Invoke-CtkGitCommit
 
-            if ($Changes -eq 0)
-            {
-                continue
-            }
-
-            Write-Host ""
-            Write-Host ("Processing {0}" -f $Repo.Name)
-
-            & $Git add .
-
-            & $Git commit `
-                -m ("Daily Update {0}" -f (
-                    Get-Date -Format "yyyy-MM-dd"
-                ))
-
-            & $Git push
-        }
-        finally
-        {
-            Pop-Location
-        }
-    }
+    Invoke-CtkGitPush
 
     Write-Host ""
-    Write-Host "End of day completed."
+    Write-Host "[OK] Session closed"
     Write-Host ""
+
+    Invoke-CtkStatus
 }

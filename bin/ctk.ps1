@@ -5,186 +5,197 @@ param(
 
 switch ($Command.ToLower())
 {
-	"list"
-	{
-		. "$PSScriptRoot\..\modules\repositories.ps1"
+    "list"
+    {
+        . "$PSScriptRoot\..\modules\repositories.ps1"
 
-		$Repos = Get-CtkRepositories
+        $Repos = Get-CtkRepositories
 
-		Write-Host ""
-		Write-Host "Repos encontrados: $($Repos.Count)"
-		Write-Host ""
+        Write-Host ""
+        Write-Host "Repos encontrados: $($Repos.Count)"
+        Write-Host ""
 
-		Write-Host ("{0,-20} {1,-8} {2}" -f "REPOSITORY","STATUS","PATH")
-		Write-Host ("{0,-20} {1,-8} {2}" -f "----------","------","----")
+        Write-Host ("{0,-20} {1,-8} {2}" -f "REPOSITORY","STATUS","PATH")
+        Write-Host ("{0,-20} {1,-8} {2}" -f "----------","------","----")
 
-		foreach ($Repo in $Repos)
-		{
-			Write-Host (
-				"{0,-20} {1,-8} {2}" -f `
-				$Repo.Name, `
-				"OK", `
-				$Repo.Path
-			)
-		}
-	}
+        foreach ($Repo in $Repos)
+        {
+            Write-Host (
+                "{0,-20} {1,-8} {2}" -f `
+                $Repo.Name, `
+                "OK", `
+                $Repo.Path
+            )
+        }
+    }
 
-	"export"
-	{
-		. "$PSScriptRoot\..\modules\repositories.ps1"
-		. "$PSScriptRoot\..\modules\export.ps1"
+    "export"
+    {
+        . "$PSScriptRoot\..\modules\repositories.ps1"
+        . "$PSScriptRoot\..\modules\export.ps1"
 
-		if ($Argument -eq "--all")
-		{
-			Invoke-CtkExportAll
-		}
-		else
-		{
-			Invoke-CtkExport $Argument
-		}
-	}
+        if ($Argument -eq "--all")
+        {
+            Invoke-CtkExportAll
+        }
+        else
+        {
+            Invoke-CtkExport $Argument
+        }
+    }
 
-	"checkpoint"
-	{
-		. "$PSScriptRoot\..\modules\repositories.ps1"
-		. "$PSScriptRoot\..\modules\export.ps1"
-		. "$PSScriptRoot\..\modules\checkpoint.ps1"
+    "checkpoint"
+    {
+        . "$PSScriptRoot\..\modules\repositories.ps1"
+        . "$PSScriptRoot\..\modules\export.ps1"
+        . "$PSScriptRoot\..\modules\checkpoint.ps1"
 
-		Invoke-CtkCheckpoint
-	}
+        Invoke-CtkCheckpoint
+    }
 
-	"status"
-	{
-		. "$PSScriptRoot\..\modules\config.ps1"
-		. "$PSScriptRoot\..\modules\repositories.ps1"
-		. "$PSScriptRoot\..\modules\status.ps1"
+    "status"
+    {
+        . "$PSScriptRoot\..\modules\config.ps1"
+        . "$PSScriptRoot\..\modules\repositories.ps1"
+        . "$PSScriptRoot\..\modules\state.ps1"
+        . "$PSScriptRoot\..\modules\status.ps1"
 
-		Invoke-CtkStatus
-	}
+        Invoke-CtkStatus
+    }
 
 	"diff"
 	{
+		. "$PSScriptRoot\..\modules\config.ps1"
 		. "$PSScriptRoot\..\modules\repositories.ps1"
 		. "$PSScriptRoot\..\modules\diff.ps1"
 
 		Invoke-CtkDiff
 	}
 
-	"end"
-	{
-		. "$PSScriptRoot\..\modules\config.ps1"
-		. "$PSScriptRoot\..\modules\repositories.ps1"
-		. "$PSScriptRoot\..\modules\export.ps1"
-		. "$PSScriptRoot\..\modules\checkpoint.ps1"
-		. "$PSScriptRoot\..\modules\status.ps1"
-		. "$PSScriptRoot\..\modules\end.ps1"
+    "end"
+    {
+        . "$PSScriptRoot\..\modules\config.ps1"
+        . "$PSScriptRoot\..\modules\repositories.ps1"
 
-		Invoke-CtkEnd
-	}
+        . "$PSScriptRoot\..\modules\state.ps1"
 
-	"start"
-	{
-		. "$PSScriptRoot\..\modules\config.ps1"
-		. "$PSScriptRoot\..\modules\repositories.ps1"
-		. "$PSScriptRoot\..\modules\start.ps1"
+        . "$PSScriptRoot\..\modules\export.ps1"
+        . "$PSScriptRoot\..\modules\checkpoint.ps1"
+        . "$PSScriptRoot\..\modules\status.ps1"
+        . "$PSScriptRoot\..\modules\end.ps1"
 
-		Invoke-CtkStart
-	}
+        Invoke-CtkEnd
+    }
 
-	"doctor"
-	{
-		. "$PSScriptRoot\..\modules\config.ps1"
-		. "$PSScriptRoot\..\modules\repositories.ps1"
-		. "$PSScriptRoot\..\modules\doctor.ps1"
+    "start"
+    {
+        . "$PSScriptRoot\..\modules\config.ps1"
+        . "$PSScriptRoot\..\modules\repositories.ps1"
+        . "$PSScriptRoot\..\modules\start.ps1"
 
-		Invoke-CtkDoctor
-	}
+        Invoke-CtkStart
+    }
 
-	"summary"
-	{
-		. "$PSScriptRoot\..\modules\summary.ps1"
-		Invoke-CtkSummary
-	}
+    "doctor"
+    {
+        . "$PSScriptRoot\..\modules\config.ps1"
+        . "$PSScriptRoot\..\modules\repositories.ps1"
+        . "$PSScriptRoot\..\modules\doctor.ps1"
 
-	"report"
-	{
-		. "$PSScriptRoot\..\modules\config.ps1"
-		. "$PSScriptRoot\..\modules\repositories.ps1"
-		. "$PSScriptRoot\..\modules\report.ps1"
+        Invoke-CtkDoctor
+    }
 
-		Invoke-CtkReport
-	}
+    "summary"
+    {
+        . "$PSScriptRoot\..\modules\summary.ps1"
 
-	"logbook"
-	{
-		. "$PSScriptRoot\..\modules\logbook.ps1"
+        Invoke-CtkSummary
+    }
 
-		Invoke-CtkLogbook
-	}
-	
-	"bootstrap"
-	{
-		. "$PSScriptRoot\..\modules\bootstrap.ps1"
+    "report"
+    {
+        . "$PSScriptRoot\..\modules\config.ps1"
+        . "$PSScriptRoot\..\modules\repositories.ps1"
+        . "$PSScriptRoot\..\modules\report.ps1"
 
-		Invoke-CtkBootstrap
-	}
+        Invoke-CtkReport
+    }
 
-	"logbook"
-	{
-		. "$PSScriptRoot\..\modules\logbook.ps1"
+    "logbook"
+    {
+        . "$PSScriptRoot\..\modules\logbook.ps1"
 
-		Invoke-CtkLogbook
-	}
+        Invoke-CtkLogbook
+    }
 
-	"current-state"
-	{
-		. "$PSScriptRoot\..\modules\current-state.ps1"
+    "bootstrap"
+    {
+        . "$PSScriptRoot\..\modules\bootstrap.ps1"
 
-		Invoke-CtkCurrentState
-	}
+        Invoke-CtkBootstrap
+    }
 
-	"test"
-	{
-		. "$PSScriptRoot\..\modules\config.ps1"
+    "current-state"
+    {
+        . "$PSScriptRoot\..\modules\current-state.ps1"
 
-		$Git = Get-CtkTool "git"
+        Invoke-CtkCurrentState
+    }
 
-		Write-Host $Git
+    "test"
+    {
+        . "$PSScriptRoot\..\modules\config.ps1"
 
-		& $Git --version
-	}
-	"ingest"
-	{
-	    . "$PSScriptRoot\..\modules\ingest.ps1"
-	
-	    Invoke-CtkIngest $Argument
-	}
-	"context"
-	{
-	    . "$PSScriptRoot\..\modules\context.ps1"
-	
-	    Invoke-CtkContext
-	}
+        $Git = Get-CtkTool "git"
+
+        Write-Host $Git
+
+        & $Git --version
+    }
+
+    "ingest"
+    {
+        . "$PSScriptRoot\..\modules\ingest.ps1"
+
+        Invoke-CtkIngest $Argument
+    }
+
+    "context"
+    {
+        . "$PSScriptRoot\..\modules\context.ps1"
+
+        Invoke-CtkContext
+    }
+
+    "tree"
+    {
+        . "$PSScriptRoot\..\modules\tree.ps1"
+
+        Invoke-CtkTree
+    }
+
     default
     {
         Write-Host ""
         Write-Host "CTK Commands"
         Write-Host ""
+
         Write-Host "ctk list"
         Write-Host "ctk export --all"
         Write-Host "ctk export AEGIS"
         Write-Host "ctk checkpoint"
-	Write-Host "ctk status"
-	Write-Host "ctk diff"
-	Write-Host "ctk end"
-	Write-Host "ctk start"
-	Write-Host "ctk doctor"
-	Write-Host "ctk summary"
-	Write-Host "ctk report"
-	Write-Host "ctk logbook"
-	Write-Host "ctk bootstrap"
-	Write-Host "ctk current-state"
-	Write-Host "ctk ingest"
-	Write-Host "ctk context"
+        Write-Host "ctk status"
+        Write-Host "ctk diff"
+        Write-Host "ctk end"
+        Write-Host "ctk start"
+        Write-Host "ctk doctor"
+        Write-Host "ctk summary"
+        Write-Host "ctk report"
+        Write-Host "ctk logbook"
+        Write-Host "ctk bootstrap"
+        Write-Host "ctk current-state"
+        Write-Host "ctk ingest"
+        Write-Host "ctk context"
+        Write-Host "ctk tree"
     }
 }

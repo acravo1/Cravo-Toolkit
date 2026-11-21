@@ -1,51 +1,83 @@
 function Invoke-CtkStart
 {
-    $Git = Get-CtkTool "git"
+    $Root = Split-Path $PSScriptRoot -Parent
 
-    $Repos = Get-CtkRepositories
+    #
+    # Load dependencies
+    #
 
-    Write-Host ""
-    Write-Host "CTK START"
-    Write-Host ""
+    . "$PSScriptRoot\context.ps1"
 
-    Write-Host (
-        "{0,-20} {1,-10}" -f
-        "REPOSITORY",
-        "STATUS"
-    )
+    $WipPath = Join-Path $Root "00-WIP"
 
-    Write-Host (
-        "{0,-20} {1,-10}" -f
-        "----------",
-        "------"
-    )
 
-    foreach ($Repo in $Repos)
+    #
+    # Garantir existência do workspace
+    #
+
+    if (-not (Test-Path $WipPath))
     {
-        $RepoPath = Resolve-Path (
-            Join-Path $PSScriptRoot "..\$($Repo.Path)"
-        )
-
-        Push-Location $RepoPath
-
-        try
-        {
-            & $Git fetch | Out-Null
-            & $Git pull  | Out-Null
-
-            Write-Host (
-                "{0,-20} {1,-10}" -f
-                $Repo.Name,
-                "UPDATED"
-            )
-        }
-        finally
-        {
-            Pop-Location
-        }
+        New-Item `
+            -ItemType Directory `
+            -Path $WipPath | Out-Null
     }
 
+    #
+    # Limpar workspace
+    #
+
+    Get-ChildItem `
+        -Path $WipPath `
+        -File |
+    Remove-Item -Force
+
     Write-Host ""
-    Write-Host "Workspace synchronized."
+    Write-Host "[OK] Workspace cleaned"
+
+    #
+    # Gerar contexto
+    #
+
+	Invoke-CtkContext
+
+	#
+	# Criar SESSION-OUTPUT.md
+	#
+
+	$SessionOutput = Join-Path `
+		$WipPath `
+		"SESSION-OUTPUT.md"
+
+@"
+# SESSION OUTPUT
+
+Date: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+
+## Current Focus
+
+## Decisions Made
+
+## Open Questions
+
+## Next Actions
+
+## Session Summary
+
+## Bootstrap Context
+
+## End Bootstrap Context
+"@ | Set-Content $SessionOutput
+
+	Write-Host ""
+	Write-Host "[OK] Session output created"
+	Write-Host $SessionOutput
+
+    Write-Host "[OK] Session output created"
+
     Write-Host ""
+    Write-Host "Workspace Ready"
+    Write-Host ""
+    Write-Host "Files:"
+    Write-Host "  00-WIP\CURRENT-CONTEXT.md"
+    Write-Host "  00-WIP\SESSION-OUTPUT.md"
 }

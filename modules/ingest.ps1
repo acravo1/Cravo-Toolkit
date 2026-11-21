@@ -1,104 +1,54 @@
 function Invoke-CtkIngest
 {
-    param(
-        [string]$File
-    )
-
-    if (-not (Test-Path $File))
-    {
-        throw "File not found: $File"
-    }
-
     $Root = Split-Path $PSScriptRoot -Parent
 
-    $MapFile = Join-Path $Root "config\ingest-map.json"
+    $SessionOutput = Join-Path `
+        $Root `
+        "00-WIP\SESSION-OUTPUT.md"
 
-    if (-not (Test-Path $MapFile))
+    if (-not (Test-Path $SessionOutput))
     {
-        throw "Mapping file not found: $MapFile"
-    }
-
-    $Map = Get-Content $MapFile -Raw | ConvertFrom-Json
-
-    $Lines = Get-Content $File
-
-    $CurrentTarget = $null
-    $Buffer = @()
-
-    foreach ($Line in $Lines)
-    {
-        if ($Line -match "^TARGET:\s*(.+)$")
-        {
-            if ($CurrentTarget -and $Buffer.Count -gt 0)
-            {
-                Write-CtkIngestBlock `
-                    -Target $CurrentTarget `
-                    -Content $Buffer `
-                    -Map $Map
-            }
-
-            $CurrentTarget = $Matches[1].Trim()
-            $Buffer = @()
-
-            continue
-        }
-
-        if ($CurrentTarget)
-        {
-            $Buffer += $Line
-        }
-    }
-
-    if ($CurrentTarget -and $Buffer.Count -gt 0)
-    {
-        Write-CtkIngestBlock `
-            -Target $CurrentTarget `
-            -Content $Buffer `
-            -Map $Map
-    }
-}
-
-function Write-CtkIngestBlock
-{
-    param(
-        [string]$Target,
-        [array]$Content,
-        $Map
-    )
-
-    $Destination = $Map.PSObject.Properties[$Target].Value
-
-    if (-not $Destination)
-    {
-        Write-Warning "Unknown target: $Target"
+        Write-Host ""
+        Write-Host "[ERROR] SESSION-OUTPUT.md not found"
         return
     }
 
-    $Root = Split-Path $PSScriptRoot -Parent
+    $SessionsPath = Join-Path `
+        $Root `
+        "03-SESSIONS"
 
-    $Destination = Join-Path $Root $Destination
-
-    $Parent = Split-Path $Destination -Parent
-
-    if (-not (Test-Path $Parent))
+    if (-not (Test-Path $SessionsPath))
     {
         New-Item `
             -ItemType Directory `
             -Force `
-            -Path $Parent | Out-Null
+            -Path $SessionsPath | Out-Null
     }
 
-    if (-not (Test-Path $Destination))
-    {
-        New-Item `
-            -ItemType File `
-            -Force `
-            -Path $Destination | Out-Null
-    }
+    $Timestamp = Get-Date `
+        -Format "yyyy-MM-dd-HHmmss"
 
-    Add-Content -Path $Destination -Value ""
-    Add-Content -Path $Destination -Value ("## Imported " + (Get-Date))
-    Add-Content -Path $Destination -Value $Content
+    $Destination = Join-Path `
+        $SessionsPath `
+        "$Timestamp.md"
 
-    Write-Host "[OK] $Target -> $Destination"
+    Copy-Item `
+        -Path $SessionOutput `
+        -Destination $Destination `
+        -Force
+
+    Remove-Item `
+        -Path $SessionOutput `
+        -Force
+
+    Write-Host ""
+    Write-Host "[OK] Session archived"
+    Write-Host $Destination
+
+    Write-Host ""
+    Write-Host "[OK] SESSION-OUTPUT removed"
+
+    Write-Host ""
+    Write-Host "Next step:"
+    Write-Host "  ctk start"
 }
