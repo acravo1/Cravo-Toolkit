@@ -39,3 +39,15 @@ inc/
 /.carmel/
 # cpanfile.snapshot should generally be ignored for library code, otherwise included
 # cpanfile.snapshot
+
+
+# CTK backups
+*.bak
+*.ctkbu
+
+# CTK runtime
+.ctk_bu/
+
+# Temporary files
+*.tmp
+*.temp

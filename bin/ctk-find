@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$HOME/git/Cravo-Toolkit/lib/ctk_functions.sh"
+
+SEARCH=""
+ROOT="."
+EXTENSIONS=""
+ALL_FILES=0
+SHOW=0
+
+usage()
+{
+cat <<EOF
+
+ctk-find
+
+USO
+
+  ctk-find \
+      --search TEXTO
+
+  ctk-find \
+      --search TEXTO \
+      --root PATH
+
+  ctk-find \
+      --search TEXTO \
+      --extensions yml,json
+
+  ctk-find \
+      --search TEXTO \
+      --all-files
+
+  ctk-find \
+      --search TEXTO \
+      --show
+
+EOF
+}
+
+while [[ $# -gt 0 ]]
+do
+    case "$1" in
+
+        --search)
+            SEARCH="$2"
+            shift 2
+            ;;
+
+        --root)
+            ROOT="$2"
+            shift 2
+            ;;
+
+        --extensions)
+            EXTENSIONS="$2"
+            shift 2
+            ;;
+
+        --all-files)
+            ALL_FILES=1
+            shift
+            ;;
+
+        --show)
+            SHOW=1
+            shift
+            ;;
+
+        --help|-h)
+            usage
+            exit 0
+            ;;
+
+        *)
+            echo "Opção inválida: $1"
+            exit 1
+            ;;
+    esac
+done
+
+[[ -z "$SEARCH" ]] && {
+    echo "Erro: --search é obrigatório"
+    exit 1
+}
+
+ctk_print_header \
+    "$ROOT" \
+    "$SEARCH" \
+    "$EXTENSIONS" \
+    "$ALL_FILES"
+
+FILES=0
+MATCHES=0
+
+while IFS= read -r -d '' file
+do
+
+    count=$(ctk_count_matches \
+        "$SEARCH" \
+        "$file")
+
+    [[ "$count" -eq 0 ]] && continue
+
+    FILES=$((FILES + 1))
+    MATCHES=$((MATCHES + count))
+
+    printf "[%2d] %s\n" \
+        "$count" \
+        "$file"
+
+    if [[ "$SHOW" -eq 1 ]]
+    then
+
+        echo
+
+        ctk_show_matches \
+            "$SEARCH" \
+            "$file"
+
+        echo
+
+    fi
+
+done < <(
+
+    ctk_find_files \
+        "$ROOT" \
+        "$ALL_FILES" \
+        "$EXTENSIONS"
+
+)
+
+ctk_print_summary \
+    "$FILES" \
+    "$MATCHES"

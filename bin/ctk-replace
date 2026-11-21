@@ -1,0 +1,263 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$HOME/git/Cravo-Toolkit/lib/ctk_functions.sh"
+
+SEARCH=""
+REPLACE=""
+ROOT="."
+
+SHOW=0
+APPLY=0
+
+usage()
+{
+cat <<EOF
+
+ctk-replace
+
+USO
+
+  ctk-replace \
+      --search TEXTO \
+      --replace TEXTO
+
+  ctk-replace \
+      --search TEXTO \
+      --replace TEXTO \
+      --show
+
+  ctk-replace \
+      --search TEXTO \
+      --replace TEXTO \
+      --apply
+
+OPÇÕES
+
+  --search TEXTO
+  --replace TEXTO
+  --root PATH
+  --show
+  --apply
+  --help
+
+EOF
+}
+
+while [[ $# -gt 0 ]]
+do
+    case "$1" in
+
+        --search)
+            SEARCH="$2"
+            shift 2
+            ;;
+
+        --replace)
+            REPLACE="$2"
+            shift 2
+            ;;
+
+        --root)
+            ROOT="$2"
+            shift 2
+            ;;
+
+        --show)
+            SHOW=1
+            shift
+            ;;
+
+        --apply)
+            APPLY=1
+            shift
+            ;;
+
+        --help|-h)
+            usage
+            exit 0
+            ;;
+
+        *)
+            echo "Opção inválida: $1"
+            exit 1
+            ;;
+    esac
+done
+
+[[ -z "$SEARCH" ]] && {
+    echo "Erro: --search é obrigatório"
+    exit 1
+}
+
+[[ -z "$REPLACE" ]] && {
+    echo "Erro: --replace é obrigatório"
+    exit 1
+}
+
+ctk_print_header \
+    "$ROOT" \
+    "$SEARCH"
+
+FILES=0
+MATCHES=0
+
+while IFS= read -r -d '' file
+do
+
+    count=$(ctk_count_matches \
+        "$SEARCH" \
+        "$file")
+
+    [[ "$count" -eq 0 ]] && continue
+
+    FILES=$((FILES + 1))
+    MATCHES=$((MATCHES + count))
+
+    printf "[%4d] %s\n" \
+        "$count" \
+        "$file"
+
+    if [[ "$SHOW" -eq 1 ]]
+    then
+
+        echo
+
+        ctk_preview_replacement \
+            "$file" \
+            "$SEARCH" \
+            "$REPLACE"
+
+    fi
+
+done < <(
+
+    ctk_find_files \
+        "$ROOT" \
+        1 \
+        ""
+
+)
+
+ctk_print_summary \
+    "$FILES" \
+    "$MATCHES"
+
+if [[ "$MATCHES" -eq 0 ]]
+then
+    exit 0
+fi
+
+if [[ "$APPLY" -eq 0 ]]
+then
+
+    echo "DRY RUN"
+    echo
+
+    exit 0
+
+fi
+
+echo
+echo "ATENÇÃO"
+echo "--------"
+echo "Esta operação irá alterar ficheiros."
+echo
+
+read -rp "Continuar? [y/N] " answer
+
+[[ "$answer" =~ ^[Yy]$ ]] || exit 0
+
+UPDATED_FILES=0
+BACKUPS=0
+ERRORS=0
+
+while IFS= read -r -d '' file
+do
+
+    count=$(ctk_count_matches \
+        "$SEARCH" \
+        "$file")
+
+    [[ "$count" -eq 0 ]] && continue
+
+    if ! ctk_require_writable "$file"
+    then
+        ERRORS=$((ERRORS + 1))
+        continue
+    fi
+
+    backup=$(ctkbu_create \
+        "$file" \
+        "$SEARCH" \
+        "$REPLACE")
+
+    if [[ -n "$backup" ]]
+    then
+        BACKUPS=$((BACKUPS + 1))
+    fi
+
+    if ! ctk_replace_in_file \
+        "$file" \
+        "$SEARCH" \
+        "$REPLACE"
+    then
+
+        echo
+        echo "ERRO"
+        echo "-----"
+        echo "Falha ao atualizar:"
+        echo "$file"
+        echo
+
+        ERRORS=$((ERRORS + 1))
+        continue
+
+    fi
+
+    remaining=$(ctk_count_matches \
+        "$SEARCH" \
+        "$file")
+
+    if [[ "$remaining" -lt "$count" ]]
+    then
+
+        UPDATED_FILES=$((UPDATED_FILES + 1))
+
+        echo "UPDATED: $file"
+        echo "BACKUP : $backup"
+        echo
+
+    else
+
+        echo "WARNING: nenhuma alteração aplicada"
+        echo "$file"
+        echo
+
+    fi
+
+done < <(
+
+    ctk_find_files \
+        "$ROOT" \
+        1 \
+        ""
+
+)
+
+echo
+echo "Resultado APPLY"
+echo "---------------"
+echo "Backups CTKBU : $BACKUPS"
+echo "Ficheiros     : $UPDATED_FILES"
+echo "Ocorrências   : $MATCHES"
+echo "Erros         : $ERRORS"
+echo
+
+if [[ "$ERRORS" -gt 0 ]]
+then
+    exit 1
+fi
+
+exit 0

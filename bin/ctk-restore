@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+source "$HOME/git/Cravo-Toolkit/lib/ctk_functions.sh"
+
+BACKUP_ID=""
+
+usage()
+{
+cat <<EOF
+
+ctk-restore
+
+USO
+
+  ctk-restore ID
+
+  ctk-restore FILE.ctkbu
+
+EXEMPLOS
+
+  ctk-restore \
+      20261120T215420Z_bad4dcab695e1415
+
+  ctk-restore \
+      ~/.ctk_bu/20261120T215420Z_bad4dcab695e1415.ctkbu
+
+EOF
+}
+
+[[ $# -eq 0 ]] && {
+    usage
+    exit 1
+}
+
+BACKUP_ID="$1"
+
+if [[ -f "$BACKUP_ID" ]]
+then
+
+    BACKUP_FILE="$BACKUP_ID"
+
+else
+
+    BACKUP_FILE="$HOME/.ctk_bu/${BACKUP_ID}.ctkbu"
+
+fi
+
+if [[ ! -f "$BACKUP_FILE" ]]
+then
+
+    echo
+    echo "Backup não encontrado:"
+    echo "$BACKUP_FILE"
+    echo
+
+    exit 1
+
+fi
+
+TARGET_FILE=$(ctkbu_get \
+    "$BACKUP_FILE" \
+    "file")
+
+echo
+echo "Backup : $BACKUP_FILE"
+echo "Destino: $TARGET_FILE"
+echo
+
+read -rp "Restaurar? [y/N] " answer
+
+[[ "$answer" =~ ^[Yy]$ ]] || exit 0
+
+if ! ctk_require_writable "$TARGET_FILE"
+then
+    exit 1
+fi
+
+#
+# Criar backup do estado atual
+#
+
+ctkbu_create \
+    "$TARGET_FILE" \
+    "restore-before" \
+    "$(basename "$BACKUP_FILE")" \
+    >/dev/null
+
+TEMP_FILE=$(mktemp)
+
+ctkbu_extract \
+    "$BACKUP_FILE" \
+    > "$TEMP_FILE"
+
+cp "$TEMP_FILE" "$TARGET_FILE"
+
+rm -f "$TEMP_FILE"
+
+echo
+echo "Restore concluído."
+echo
+echo "Destino:"
+echo "$TARGET_FILE"
+echo
